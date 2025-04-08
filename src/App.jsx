@@ -1,10 +1,6 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function AskSaveApp() {
+export default function App() {
   const [questions, setQuestions] = useState([
     { text: "Was war dein schönstes Kindheitserlebnis?", askedTo: [] },
     { text: "Wenn du eine Superkraft haben könntest, welche wäre es?", askedTo: [] },
@@ -36,67 +32,59 @@ export default function AskSaveApp() {
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-4">Ask Save!</h1>
-      <Tabs defaultValue="questions" className="w-full">
-        <TabsList>
-          <TabsTrigger value="questions">Fragen</TabsTrigger>
-          <TabsTrigger value="matches">Matches</TabsTrigger>
-        </TabsList>
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto", fontFamily: "Arial" }}>
+      <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "20px" }}>Ask Save!</h1>
 
-        <div className="mt-4">
-          {/* Fragen Tab */}
-          <div hidden={false}>
-            <div className="space-y-2">
-              {questions.map((q, idx) => (
-                <Card key={idx}>
-                  <CardContent className="p-4 flex flex-col space-y-2">
-                    <span>{q.text}</span>
-                    <div className="flex gap-2">
-                      <Button onClick={() => handleCopy(q.text)}>Kopieren</Button>
-                      <select
-                        className="border rounded px-2"
-                        value={selectedMatch}
-                        onChange={(e) => setSelectedMatch(e.target.value)}
-                      >
-                        <option value="">An wen?</option>
-                        {matches.map((m, i) => (
-                          <option key={i} value={m}>{m}</option>
-                        ))}
-                      </select>
-                      <Button onClick={() => handleAsk(idx, selectedMatch)} disabled={!selectedMatch}>Markieren</Button>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Schon gestellt an: {q.askedTo.join(", ") || "Niemanden"}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              <div className="mt-4">
-                <Input
-                  placeholder="Neue Frage eingeben"
-                  value={newQuestion}
-                  onChange={(e) => setNewQuestion(e.target.value)}
-                />
-                <Button className="mt-2" onClick={handleAddQuestion}>Frage hinzufügen</Button>
-              </div>
-            </div>
-          </div>
+      <h2 style={{ fontSize: "18px", marginBottom: "10px" }}>Fragen</h2>
 
-          {/* Matches Tab */}
-          <div hidden={true}>
-            <div className="space-y-2">
-              {matches.map((match, idx) => (
-                <Card key={idx}>
-                  <CardContent className="p-4">
-                    <span>{match}</span>
-                  </CardContent>
-                </Card>
+      {questions.map((q, idx) => (
+        <div key={idx} style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px", borderRadius: "6px" }}>
+          <p>{q.text}</p>
+          <div style={{ display: "flex", gap: "10px", marginTop: "10px", flexWrap: "wrap" }}>
+            <button onClick={() => handleCopy(q.text)}>Kopieren</button>
+
+            <select
+              value={selectedMatch}
+              onChange={(e) => setSelectedMatch(e.target.value)}
+            >
+              <option value="">An wen?</option>
+              {matches.map((m, i) => (
+                <option key={i} value={m}>{m}</option>
               ))}
-            </div>
+            </select>
+
+            <button
+              onClick={() => handleAsk(idx, selectedMatch)}
+              disabled={!selectedMatch}
+            >
+              Markieren
+            </button>
           </div>
+          <p style={{ fontSize: "12px", color: "#666", marginTop: "8px" }}>
+            Schon gestellt an: {q.askedTo.join(", ") || "Niemanden"}
+          </p>
         </div>
-      </Tabs>
+      ))}
+
+      <div style={{ marginTop: "20px" }}>
+        <input
+          type="text"
+          placeholder="Neue Frage eingeben"
+          value={newQuestion}
+          onChange={(e) => setNewQuestion(e.target.value)}
+          style={{ padding: "8px", width: "70%", marginRight: "10px" }}
+        />
+        <button onClick={handleAddQuestion}>Frage hinzufügen</button>
+      </div>
+
+      <hr style={{ margin: "30px 0" }} />
+
+      <h2 style={{ fontSize: "18px", marginBottom: "10px" }}>Matches</h2>
+      <ul>
+        {matches.map((m, i) => (
+          <li key={i}>{m}</li>
+        ))}
+      </ul>
     </div>
   );
 }

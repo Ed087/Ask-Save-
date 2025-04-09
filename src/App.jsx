@@ -1,18 +1,37 @@
 import { useState, useEffect } from "react";
+
 const [selectedCategory, setSelectedCategory] = useState("");
 
 export default function App() {
   const defaultLibrary = [
     { category: "Tiefgründig", text: "Was bedeutet Glück für dich?" },
-    { category: "Tiefgründig", text: "Wofür bist du in deinem Leben am meisten dankbar?" },
-    { category: "Tiefgründig", text: "Was war der schwierigste Moment deines Lebens?" },
+    {
+      category: "Tiefgründig",
+      text: "Wofür bist du in deinem Leben am meisten dankbar?",
+    },
+    {
+      category: "Tiefgründig",
+      text: "Was war der schwierigste Moment deines Lebens?",
+    },
     { category: "Locker", text: "Was ist dein Lieblingsfilm?" },
     { category: "Locker", text: "Berge oder Strand?" },
-    { category: "Fun", text: "Wenn du ein Tier sein könntest, welches wärst du?" },
-    { category: "Fun", text: "Würdest du lieber fliegen oder Gedanken lesen können?" },
-    { category: "18+ Harmlos", text: "Magst du es, beim Küssen festgehalten zu werden?" },
+    {
+      category: "Fun",
+      text: "Wenn du ein Tier sein könntest, welches wärst du?",
+    },
+    {
+      category: "Fun",
+      text: "Würdest du lieber fliegen oder Gedanken lesen können?",
+    },
+    {
+      category: "18+ Harmlos",
+      text: "Magst du es, beim Küssen festgehalten zu werden?",
+    },
     { category: "18+ Direkt", text: "Was ist dein größter sexueller Wunsch?" },
-    { category: "18+ Schlüpfrig", text: "Hattest du schon mal Sex an einem ungewöhnlichen Ort?" },
+    {
+      category: "18+ Schlüpfrig",
+      text: "Hattest du schon mal Sex an einem ungewöhnlichen Ort?",
+    },
     // ... weitere 40+ Fragen möglich
   ];
 
@@ -51,7 +70,7 @@ export default function App() {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [questions, matches, answers, darkMode]);
 
-const handleCopy = (text) => {
+  const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
     alert("Frage kopiert!");
   };
@@ -72,7 +91,10 @@ const handleCopy = (text) => {
 
   const handleAddQuestion = () => {
     if (newQuestion.trim()) {
-      setQuestions([...questions, { category: "Benutzer", text: newQuestion, askedTo: [] }]);
+      setQuestions([
+        ...questions,
+        { category: "Benutzer", text: newQuestion, askedTo: [] },
+      ]);
       setNewQuestion("");
     }
   };
@@ -123,7 +145,7 @@ const handleCopy = (text) => {
         <button onClick={() => setTab("matches")}>Matches</button>
       </div>
 
-{tab === "fragen" && (
+      {tab === "fragen" && (
         <>
           <h2>Fragen</h2>
           {questions.map((q, idx) => (
@@ -159,7 +181,13 @@ const handleCopy = (text) => {
                   Markieren & Antworten
                 </button>
               </div>
-              <p style={{ fontSize: "12px", color: darkMode ? "#aaa" : "#666", marginTop: "6px" }}>
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: darkMode ? "#aaa" : "#666",
+                  marginTop: "6px",
+                }}
+              >
                 Schon gestellt an: {q.askedTo?.join(", ") || "Niemanden"}
               </p>
             </div>
@@ -176,41 +204,49 @@ const handleCopy = (text) => {
             <button onClick={handleAddQuestion}>Frage hinzufügen</button>
           </div>
 
-    <h3 style={{ marginTop: "30px" }}>Fragen-Bibliothek (Dropdown)</h3>
+          <h3 style={{ marginTop: "30px" }}>Fragen-Bibliothek (Dropdown)</h3>
 
-<div style={{ marginBottom: "10px" }}>
-  <label>Kategorie wählen: </label>
-  <select
-    onChange={(e) => setSelectedCategory(e.target.value)}
-    value={selectedCategory}
-    style={{ padding: "6px", marginLeft: "10px" }}
-  >
-    <option value="">-- Kategorie --</option>
-    {[...new Set(questionLibrary.map(q => q.category))].map((cat, idx) => (
-      <option key={idx} value={cat}>{cat}</option>
-    ))}
-  </select>
-</div>
+          <div style={{ marginBottom: "10px" }}>
+            <label>Kategorie wählen: </label>
+            <select
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              value={selectedCategory}
+              style={{ padding: "6px", marginLeft: "10px" }}
+            >
+              <option value="">-- Kategorie --</option>
+              {[...new Set(questionLibrary.map((q) => q.category))].map(
+                (cat, idx) => (
+                  <option key={idx} value={cat}>
+                    {cat}
+                  </option>
+                )
+              )}
+            </select>
+          </div>
 
-{selectedCategory && (
-  <div style={{ marginBottom: "10px" }}>
-    <label>Frage auswählen: </label>
-    <select
-      onChange={(e) => {
-        const selected = questionLibrary.find(q => q.text === e.target.value);
-        if (selected) setNewQuestion(selected.text);
-      }}
-      style={{ padding: "6px", marginLeft: "10px", width: "60%" }}
-    >
-      <option value="">-- Frage --</option>
-      {questionLibrary
-        .filter(q => q.category === selectedCategory)
-        .map((q, idx) => (
-          <option key={idx} value={q.text}>{q.text}</option>
-        ))}
-    </select>
-  </div>
-)}
+          {selectedCategory && (
+            <div style={{ marginBottom: "10px" }}>
+              <label>Frage auswählen: </label>
+              <select
+                onChange={(e) => {
+                  const selected = questionLibrary.find(
+                    (q) => q.text === e.target.value
+                  );
+                  if (selected) setNewQuestion(selected.text);
+                }}
+                style={{ padding: "6px", marginLeft: "10px", width: "60%" }}
+              >
+                <option value="">-- Frage --</option>
+                {questionLibrary
+                  .filter((q) => q.category === selectedCategory)
+                  .map((q, idx) => (
+                    <option key={idx} value={q.text}>
+                      {q.text}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
         </>
       )}
 
@@ -245,7 +281,11 @@ const handleCopy = (text) => {
                     placeholder="Antwort eingeben..."
                     value={answers?.[activeAnswerMatch]?.[q.text] || ""}
                     onChange={(e) =>
-                      handleAnswerChange(activeAnswerMatch, q.text, e.target.value)
+                      handleAnswerChange(
+                        activeAnswerMatch,
+                        q.text,
+                        e.target.value
+                      )
                     }
                     style={{ width: "100%", padding: "8px" }}
                   />

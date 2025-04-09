@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 
 export default function App() {
@@ -38,16 +39,17 @@ export default function App() {
     alert("Frage kopiert!");
   };
 
-  const handleAsk = (questionIndex, matchName) => {
+  const handleAsk = (q, matchName) => {
     const timestamp = new Date().toLocaleString();
     setQuestions((prev) => {
       const updated = [...prev];
-      if (!updated[questionIndex].askedTo?.includes(matchName)) {
-        updated[questionIndex].askedTo = [...(updated[questionIndex].askedTo || []), matchName];
+      const index = updated.findIndex((x) => x.text === q.text);
+      if (!updated[index].askedTo?.includes(matchName)) {
+        updated[index].askedTo = [...(updated[index].askedTo || []), matchName];
       }
       return updated;
     });
-    setLog([...log, { to: matchName, question: questions[questionIndex].text, time: timestamp }]);
+    setLog([...log, { to: matchName, question: q.text, category: q.category, time: timestamp }]);
     setActiveAnswerMatch(matchName);
     setTab("antworten");
   };
@@ -60,12 +62,6 @@ export default function App() {
         [question]: value,
       },
     }));
-  };
-
-  const handleFavoriteToggle = (question) => {
-    setFavorites((prev) =>
-      prev.includes(question) ? prev.filter((q) => q !== question) : [...prev, question]
-    );
   };
 
   const handleNoteChange = (match, value) => {
@@ -109,9 +105,111 @@ export default function App() {
         <button onClick={() => setTab("verlauf")}>Verlauf</button>
       </div>
 
-      {/* Die weiteren UI-Elemente (Fragen, Antworten, Matches, Verlauf) würdest du wie bisher strukturieren.
-          Der Code kann beliebig erweitert werden basierend auf dem bisherigen Muster.
-          Für die Übersicht wird der Teil hier abgekürzt. */}
+      {tab === "fragen" && (
+        <>
+          <h2>Frage stellen</h2>
+          <select onChange={(e) => setSelectedCategory(e.target.value)} value={selectedCategory}>
+            <option value="">-- Kategorie wählen --</option>
+            {[...new Set(questionLibrary.map(q => q.category))].map((cat, idx) => (
+              <option key={idx} value={cat}>{cat}</option>
+            ))}
+          </select>
+          {selectedCategory && (
+            <select onChange={(e) => setNewQuestion(e.target.value)} value={newQuestion}>
+              <option value="">-- Frage auswählen --</option>
+              {questionLibrary
+                .filter(q => q.category === selectedCategory)
+                .map((q, idx) => (
+                  <option key={idx} value={q.text}>{q.text}</option>
+                ))}
+            </select>
+          )}
+          {newQuestion && (
+            <div style={{ marginTop: 10 }}>
+              <select value={selectedMatch} onChange={(e) => setSelectedMatch(e.target.value)}>
+                <option value="">An wen?</option>
+                {matches.map((m, i) => (
+                  <option key={i} value={m}>{m}</option>
+                ))}
+              </select>
+              <button
+                onClick={() =>
+                  handleAsk(
+                    questionLibrary.find(q => q.text === newQuestion),
+                    selectedMatch
+                  )
+                }
+                disabled={!selectedMatch}
+              >
+                Frage stellen
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {tab === "antworten" && activeAnswerMatch && (
+        <>
+          <h2>Antworten für {activeAnswerMatch}</h2>
+          {questions.filter(q => q.askedTo?.includes(activeAnswerMatch)).map((q, idx) => (
+            <div key={idx} style={{ marginBottom: 10 }}>
+              <p><strong>{q.text}</strong></p>
+              <textarea
+                rows={2}
+                value={answers[activeAnswerMatch]?.[q.text] || ""}
+                onChange={(e) => handleAnswerChange(activeAnswerMatch, q.text, e.target.value)}
+                style={{ width: '100%' }}
+              />
+            </div>
+          ))}
+        </>
+      )}
+
+      {tab === "matches" && (
+        <>
+          <h2>Matches</h2>
+          {matches.map((m, idx) => (
+            <div key={idx} style={{ marginBottom: 10 }}>
+              <strong>{m}</strong>
+              <button onClick={() => setMatches(matches.filter(name => name !== m))} style={{ marginLeft: 10 }}>❌</button>
+              <br />
+              <textarea
+                placeholder="Notizen..."
+                rows={2}
+                style={{ width: '100%' }}
+                value={notes[m] || ""}
+                onChange={(e) => handleNoteChange(m, e.target.value)}
+              />
+            </div>
+          ))}
+          <input
+            placeholder="Neuer Match"
+            value={newMatch}
+            onChange={(e) => setNewMatch(e.target.value)}
+          />
+          <button onClick={() => {
+            if (newMatch && !matches.includes(newMatch)) {
+              setMatches([...matches, newMatch]);
+              setNewMatch("");
+            }
+          }}>Hinzufügen</button>
+        </>
+      )}
+
+      {tab === "verlauf" && (
+        <>
+          <h2>Verlauf</h2>
+          {log.slice().reverse().map((entry, idx) => (
+            <div key={idx} style={{ marginBottom: 10 }}>
+              <p>🕒 {entry.time}</p>
+              <p>👤 <strong>{entry.to}</strong></p>
+              <p>📂 [{entry.category}]</p>
+              <p>❓ {entry.question}</p>
+              <hr />
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 }

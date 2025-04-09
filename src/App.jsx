@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+const [selectedCategory, setSelectedCategory] = useState("");
 
 export default function App() {
   const defaultLibrary = [
@@ -175,15 +176,41 @@ const handleCopy = (text) => {
             <button onClick={handleAddQuestion}>Frage hinzufügen</button>
           </div>
 
-          <h3 style={{ marginTop: "30px" }}>Fragen-Bibliothek</h3>
-          {questionLibrary.map((q, i) => (
-            <div key={i} style={{ border: "1px dashed #888", padding: "8px", margin: "8px 0" }}>
-              <p>
-                <strong>[{q.category}]</strong> {q.text}
-              </p>
-              <button onClick={() => setNewQuestion(q.text)}>→ In Eingabe übernehmen</button>
-            </div>
-          ))}
+    <h3 style={{ marginTop: "30px" }}>Fragen-Bibliothek (Dropdown)</h3>
+
+<div style={{ marginBottom: "10px" }}>
+  <label>Kategorie wählen: </label>
+  <select
+    onChange={(e) => setSelectedCategory(e.target.value)}
+    value={selectedCategory}
+    style={{ padding: "6px", marginLeft: "10px" }}
+  >
+    <option value="">-- Kategorie --</option>
+    {[...new Set(questionLibrary.map(q => q.category))].map((cat, idx) => (
+      <option key={idx} value={cat}>{cat}</option>
+    ))}
+  </select>
+</div>
+
+{selectedCategory && (
+  <div style={{ marginBottom: "10px" }}>
+    <label>Frage auswählen: </label>
+    <select
+      onChange={(e) => {
+        const selected = questionLibrary.find(q => q.text === e.target.value);
+        if (selected) setNewQuestion(selected.text);
+      }}
+      style={{ padding: "6px", marginLeft: "10px", width: "60%" }}
+    >
+      <option value="">-- Frage --</option>
+      {questionLibrary
+        .filter(q => q.category === selectedCategory)
+        .map((q, idx) => (
+          <option key={idx} value={q.text}>{q.text}</option>
+        ))}
+    </select>
+  </div>
+)}
         </>
       )}
 

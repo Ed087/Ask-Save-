@@ -10,26 +10,23 @@ export default function App() {
     },
     {
       category: "Interessen & Persönliches",
-      text: "Hast du ein Hobby, das kaum jemand kennt?",
+      text: "Was macht dich besonders?",
     },
     { category: "Zukunft", text: "Wo siehst du dich in 5 Jahren?" },
-    {
-      category: "Zukunft",
-      text: "Was ist ein Ziel, das du unbedingt erreichen möchtest?",
-    },
-    { category: "Lustig", text: "Was ist das Dümmste, das du je getan hast?" },
+    { category: "Zukunft", text: "Was willst du noch erleben?" },
     { category: "Lustig", text: "Was ist dein peinlichstes Erlebnis?" },
+    { category: "Lustig", text: "Wenn du ein Tier wärst..." },
     { category: "Intimes", text: "Was findest du anziehend?" },
-    { category: "Intimes", text: "Wie zeigst du, dass du jemanden magst?" },
-    { category: "Tiefgründig", text: "Glaubst du an Schicksal?" },
+    { category: "Intimes", text: "Wie zeigst du Zuneigung?" },
     { category: "Tiefgründig", text: "Was bedeutet Liebe für dich?" },
+    { category: "Tiefgründig", text: "Glaubst du an Schicksal?" },
     {
       category: "Würdest du lieber..?",
-      text: "Würdest du lieber für immer flüstern oder für immer schreien?",
+      text: "Würdest du lieber für immer flüstern oder schreien?",
     },
     {
       category: "Würdest du lieber..?",
-      text: "Würdest du lieber reich sein oder glücklich?",
+      text: "Würdest du lieber reich oder glücklich sein?",
     },
   ];
 
@@ -46,10 +43,7 @@ export default function App() {
   const [selectedMatch, setSelectedMatch] = useState("");
   const [newMatch, setNewMatch] = useState("");
   const [newQuestion, setNewQuestion] = useState("");
-  const [newCategory, setNewCategory] = useState("");
-  const [darkMode, setDarkMode] = useState(
-    () => JSON.parse(localStorage.getItem("darkMode")) || false
-  );
+  const [darkMode, setDarkMode] = useState(false);
   const [tab, setTab] = useState("fragen");
   const [activeAnswerMatch, setActiveAnswerMatch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -63,16 +57,37 @@ export default function App() {
     () => JSON.parse(localStorage.getItem("log")) || []
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "dark"
+  );
 
   useEffect(() => {
     localStorage.setItem("questions", JSON.stringify(questions));
     localStorage.setItem("matches", JSON.stringify(matches));
     localStorage.setItem("answers", JSON.stringify(answers));
-    localStorage.setItem("darkMode", JSON.stringify(darkMode));
     localStorage.setItem("favorites", JSON.stringify(favorites));
     localStorage.setItem("notes", JSON.stringify(notes));
     localStorage.setItem("log", JSON.stringify(log));
-  }, [questions, matches, answers, darkMode, favorites, notes, log]);
+    localStorage.setItem("theme", theme);
+  }, [questions, matches, answers, favorites, notes, log, theme]);
+
+  const themeStyles = {
+    dark: {
+      backgroundColor: "#121212",
+      color: "#eee",
+      fontFamily: "Arial",
+    },
+    light: {
+      backgroundColor: "#fdfdfd",
+      color: "#222",
+      fontFamily: "Verdana",
+    },
+    romantic: {
+      backgroundColor: "#fff0f6",
+      color: "#880e4f",
+      fontFamily: "'Comic Sans MS', cursive",
+    },
+  };
   const handleAsk = (q, matchName) => {
     const timestamp = new Date().toLocaleString();
     const newQ = { ...q, askedTo: [...(q.askedTo || []), matchName] };
@@ -82,7 +97,7 @@ export default function App() {
       {
         to: matchName,
         question: q.text,
-        category: q.category,
+        category: q.category || "Unbekannt",
         time: timestamp,
       },
     ]);
@@ -91,14 +106,21 @@ export default function App() {
   };
 
   const handleAddCustomQuestion = () => {
-    if (newQuestion && newCategory) {
-      setQuestionLibrary([
-        ...questionLibrary,
-        { category: newCategory, text: newQuestion },
+    if (newQuestion.trim()) {
+      setQuestionLibrary((prev) => [
+        ...prev,
+        { category: "Eigene Fragen", text: newQuestion.trim() },
       ]);
       setNewQuestion("");
-      setNewCategory("");
-      alert("Frage hinzugefügt!");
+      alert("Frage gespeichert unter Eigene Fragen!");
+    }
+  };
+
+  const toggleFavorite = (questionText) => {
+    if (favorites.includes(questionText)) {
+      setFavorites(favorites.filter((q) => q !== questionText));
+    } else {
+      setFavorites([...favorites, questionText]);
     }
   };
 
@@ -114,20 +136,31 @@ export default function App() {
   };
 
   return (
-    <div
-      style={{
-        backgroundColor: darkMode ? "#121212" : "#fff",
-        color: darkMode ? "#eee" : "#000",
-        padding: 20,
-      }}
-    >
-      <h1>Ask Save</h1>
+    <div style={{ ...themeStyles[theme], padding: 20, minHeight: "100vh" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+        }}
+      >
+        <h1>Ask Save</h1>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <select onChange={(e) => setTheme(e.target.value)} value={theme}>
+            <option value="dark">🖤 Dark</option>
+            <option value="light">☀️ Light</option>
+            <option value="romantic">💖 Romantic</option>
+          </select>
+          <button onClick={exportData}>⬇ Backup</button>
+        </div>
+      </div>
+
       <div
         style={{
           display: "flex",
           flexWrap: "wrap",
           gap: "10px",
-          marginBottom: 15,
+          margin: "20px 0",
         }}
       >
         <button onClick={() => setTab("fragen")}>Fragen</button>
@@ -136,11 +169,7 @@ export default function App() {
         <button onClick={() => setTab("verlauf")}>Verlauf</button>
         <button onClick={() => setTab("favoriten")}>Favoriten</button>
         <button onClick={() => setTab("analyse")}>Analyse</button>
-        <button onClick={exportData}>⬇ Backup</button>
-        <button onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? "🌞" : "🌙"}
-        </button>
-      </div>{" "}
+      </div>
       {tab === "fragen" && (
         <>
           <h2>Fragen stellen</h2>
@@ -149,13 +178,16 @@ export default function App() {
             value={selectedCategory}
           >
             <option value="">Kategorie wählen</option>
-            {[...new Set(questionLibrary.map((q) => q.category))].map(
-              (cat, i) => (
-                <option key={i} value={cat}>
-                  {cat}
-                </option>
-              )
-            )}
+            {[
+              ...new Set([
+                ...questionLibrary.map((q) => q.category),
+                "Eigene Fragen",
+              ]),
+            ].map((cat, i) => (
+              <option key={i} value={cat}>
+                {cat}
+              </option>
+            ))}
           </select>
           <select
             onChange={(e) => setNewQuestion(e.target.value)}
@@ -190,35 +222,32 @@ export default function App() {
             Senden
           </button>
 
-          <h3>Eigene Frage hinzufügen</h3>
+          <h3>Eigene Frage</h3>
           <input
-            placeholder="Frage"
+            placeholder="Frage eingeben"
             value={newQuestion}
             onChange={(e) => setNewQuestion(e.target.value)}
-          />
-          <input
-            placeholder="Kategorie"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
+            style={{ width: "100%", padding: "6px", margin: "10px 0" }}
           />
           <button onClick={handleAddCustomQuestion}>➕ Hinzufügen</button>
         </>
       )}
+
       {tab === "antworten" && (
         <>
           <h2>Antworten</h2>
           <input
-            placeholder="Nach Frage suchen..."
+            placeholder="Frage durchsuchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ marginBottom: 10, padding: 6, width: "100%" }}
+            style={{ width: "100%", padding: "6px", marginBottom: "10px" }}
           />
           <div
             style={{
               display: "flex",
               flexWrap: "wrap",
               gap: "10px",
-              marginBottom: 15,
+              marginBottom: 10,
             }}
           >
             {matches
@@ -245,6 +274,12 @@ export default function App() {
                   <div key={idx}>
                     <p>
                       <strong>{q.text}</strong>
+                      <button
+                        onClick={() => toggleFavorite(q.text)}
+                        style={{ marginLeft: 10 }}
+                      >
+                        {favorites.includes(q.text) ? "⭐" : "☆"}
+                      </button>
                     </p>
                     <textarea
                       rows={2}
@@ -299,6 +334,7 @@ export default function App() {
           </button>
         </>
       )}
+
       {tab === "verlauf" && (
         <>
           <h2>Verlauf</h2>
@@ -316,17 +352,27 @@ export default function App() {
             ))}
         </>
       )}
+
       {tab === "favoriten" && (
         <>
-          <h2>Favoriten</h2>
+          <h2>⭐ Favoriten</h2>
           {favorites.map((f, i) => (
-            <p key={i}>⭐ {f}</p>
+            <div key={i} style={{ marginBottom: "10px" }}>
+              <span>{f}</span>
+              <button
+                onClick={() => toggleFavorite(f)}
+                style={{ marginLeft: 10 }}
+              >
+                🗑 Entfernen
+              </button>
+            </div>
           ))}
         </>
       )}
+
       {tab === "analyse" && (
         <>
-          <h2>Analyse</h2>
+          <h2>📊 Analyse</h2>
           {matches.map((m, i) => {
             const gestellt = questions.filter((q) =>
               q.askedTo?.includes(m)

@@ -3,19 +3,10 @@ import { useState, useEffect } from "react";
 export default function App() {
   const defaultLibrary = [
     { category: "Smalltalk", text: "Wie war dein Tag heute?", tags: ["locker"] },
-    { category: "Interessen & Persönliches", text: "Was begeistert dich wirklich?", tags: ["tiefgründig"] },
-    { category: "Zukunft", text: "Wo siehst du dich in 5 Jahren?", tags: ["nachdenklich"] },
-    { category: "Lustig", text: "Was ist dein peinlichstes Erlebnis?", tags: ["witzig", "locker"] },
-    { category: "Intimes", text: "Was findest du anziehend?", tags: ["intim", "frech"] },
-    { category: "Tiefgründig", text: "Was bedeutet Liebe für dich?", tags: ["emotional", "tiefgründig"] },
-    { category: "Würdest du lieber..?", text: "Würdest du lieber für immer flüstern oder schreien?", tags: ["witzig", "nachdenklich"] }
-  ];
-
-  const defaultSnippets = [
-    "Muss ich mal überlegen…",
-    "Hahaha gute Frage!",
-    "Kommt auf die Situation an…",
-    "Willst du die ehrliche oder die charmante Antwort?"
+    { category: "Tiefgründig", text: "Was bedeutet Liebe für dich?", tags: ["tiefgründig"] },
+    { category: "Lustig", text: "Was ist dein peinlichstes Erlebnis?", tags: ["witzig"] },
+    { category: "Intimes", text: "Was findest du anziehend?", tags: ["intim"] },
+    { category: "Würdest du lieber..?", text: "Würdest du lieber fliegen oder unsichtbar sein?", tags: ["witzig", "locker"] }
   ];
 
   const [questionLibrary, setQuestionLibrary] = useState(defaultLibrary);
@@ -32,8 +23,15 @@ export default function App() {
   const [log, setLog] = useState(() => JSON.parse(localStorage.getItem("log")) || []);
   const [searchTerm, setSearchTerm] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
-  const [snippets, setSnippets] = useState(defaultSnippets);
   const [styleMode, setStyleMode] = useState("alle");
+  const [snippets, setSnippets] = useState(() => JSON.parse(localStorage.getItem("snippets")) || [
+    "Muss ich mal überlegen…",
+    "Gute Frage!",
+    "Kommt auf die Situation an…"
+  ]);
+  const [newSnippet, setNewSnippet] = useState("");
+  const [editSnippetIndex, setEditSnippetIndex] = useState(null);
+  const [editSnippetValue, setEditSnippetValue] = useState("");
 
   useEffect(() => {
     localStorage.setItem("questions", JSON.stringify(questions));
@@ -43,7 +41,8 @@ export default function App() {
     localStorage.setItem("notes", JSON.stringify(notes));
     localStorage.setItem("log", JSON.stringify(log));
     localStorage.setItem("theme", theme);
-  }, [questions, matches, answers, favorites, notes, log, theme]);
+    localStorage.setItem("snippets", JSON.stringify(snippets));
+  }, [questions, matches, answers, favorites, notes, log, theme, snippets]);
 
   const themeStyles = {
     dark: {
@@ -96,6 +95,25 @@ const handleAsk = (q, matchName) => {
     a.click();
   };
 
+  const handleAddSnippet = () => {
+    if (newSnippet.trim()) {
+      setSnippets([...snippets, newSnippet.trim()]);
+      setNewSnippet("");
+    }
+  };
+
+  const handleEditSnippet = (i) => {
+    const updated = [...snippets];
+    updated[i] = editSnippetValue;
+    setSnippets(updated);
+    setEditSnippetIndex(null);
+    setEditSnippetValue("");
+  };
+
+  const handleDeleteSnippet = (i) => {
+    setSnippets(snippets.filter((_, idx) => idx !== i));
+  };
+
   return (
     <div style={{ ...themeStyles[theme], padding: 20, minHeight: "100vh" }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: "wrap" }}>
@@ -107,7 +125,7 @@ const handleAsk = (q, matchName) => {
             <option value="romantic">💖 Romantic</option>
           </select>
           <select onChange={(e) => setStyleMode(e.target.value)} value={styleMode}>
-            <option value="alle">Alle Fragen</option>
+            <option value="alle">Alle</option>
             <option value="locker">Charmant</option>
             <option value="frech">Frech</option>
             <option value="tiefgründig">Tiefsinnig</option>
@@ -141,6 +159,10 @@ const handleAsk = (q, matchName) => {
             {matches.map((m, i) => <option key={i} value={m}>{m}</option>)}
           </select>
 
+          {!selectedMatch && (
+            <p style={{ color: "crimson", marginTop: 5 }}>Bitte wähle zuerst ein Match aus.</p>
+          )}
+
           <div style={{ marginTop: 10 }}>
             {questionLibrary
               .filter(q => styleMode === "alle" || q.tags?.includes(styleMode))
@@ -156,83 +178,87 @@ const handleAsk = (q, matchName) => {
                 </div>
               ))}
           </div>
-
-          <h3 style={{ marginTop: 30 }}>Zuletzt gestellt:</h3>
-          {log.slice(-5).reverse().map((entry, i) => (
-            <div key={i} style={{ fontSize: "14px", marginBottom: "6px" }}>
-              <strong>{entry.to}</strong> → {entry.question}
-              <br /><span style={{ color: "#aaa" }}>{entry.time}</span>
-            </div>
-          ))}
         </>
       )}
 
-      {tab === "antworten" && (
+      {tab === "antworten" && activeAnswerMatch && (
         <>
-          <h2>Antworten</h2>
-          <input
-            placeholder="Frage durchsuchen..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: "100%", padding: "6px", marginBottom: "10px" }}
-          />
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: 10 }}>
-            {matches.filter(m =>
-              !searchTerm || Object.keys(answers[m] || {}).some(q =>
-                q.toLowerCase().includes(searchTerm.toLowerCase()))
-            ).map((m, i) => (
-              <button key={i} onClick={() => setActiveAnswerMatch(m)}>{m}</button>
-            ))}
-          </div>
-
-          {activeAnswerMatch && (
-            <>
-              <h3>Antworten für {activeAnswerMatch}</h3>
-              {questions
-                .filter(q => q.askedTo?.includes(activeAnswerMatch))
-                .map((q, idx) => (
-                  <div key={idx} style={{ marginBottom: 10 }}>
-                    <p>
-                      <strong>{q.text}</strong>
-                      {!answers[activeAnswerMatch]?.[q.text] && <span style={{ color: "red", marginLeft: 10 }}>❗</span>}
-                    </p>
-                    <textarea
-                      rows={2}
-                      style={{ width: "100%" }}
-                      value={answers[activeAnswerMatch]?.[q.text] || ""}
-                      onChange={(e) =>
-                        setAnswers(prev => ({
-                          ...prev,
-                          [activeAnswerMatch]: {
-                            ...prev[activeAnswerMatch],
-                            [q.text]: e.target.value
-                          }
-                        }))
+          <h2>Antworten für {activeAnswerMatch}</h2>
+          {questions
+            .filter(q => q.askedTo?.includes(activeAnswerMatch))
+            .map((q, idx) => (
+              <div key={idx} style={{ marginBottom: 10 }}>
+                <p>
+                  <strong>{q.text}</strong>
+                  {!answers[activeAnswerMatch]?.[q.text] && <span style={{ color: "red", marginLeft: 10 }}>❗</span>}
+                </p>
+                <textarea
+                  rows={2}
+                  style={{ width: "100%" }}
+                  value={answers[activeAnswerMatch]?.[q.text] || ""}
+                  onChange={(e) =>
+                    setAnswers(prev => ({
+                      ...prev,
+                      [activeAnswerMatch]: {
+                        ...prev[activeAnswerMatch],
+                        [q.text]: e.target.value
                       }
-                    />
-                    <div>
-                      <label>📂 Antwortbaustein:</label>
-                      <select onChange={(e) => {
-                        if (e.target.value) {
-                          const val = e.target.value;
-                          setAnswers(prev => ({
-                            ...prev,
-                            [activeAnswerMatch]: {
-                              ...prev[activeAnswerMatch],
-                              [q.text]: (prev[activeAnswerMatch]?.[q.text] || "") + " " + val
-                            }
-                          }));
-                          e.target.value = "";
+                    }))
+                  }
+                />
+                <div>
+                  <label>📂 Baustein:</label>
+                  <select onChange={(e) => {
+                    if (e.target.value) {
+                      const val = e.target.value;
+                      setAnswers(prev => ({
+                        ...prev,
+                        [activeAnswerMatch]: {
+                          ...prev[activeAnswerMatch],
+                          [q.text]: (prev[activeAnswerMatch]?.[q.text] || "") + " " + val
                         }
-                      }}>
-                        <option value="">Baustein wählen</option>
-                        {snippets.map((s, i) => <option key={i} value={s}>{s}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                ))}
-            </>
-          )}
+                      }));
+                      e.target.value = "";
+                    }
+                  }}>
+                    <option value="">Baustein wählen</option>
+                    {snippets.map((s, i) => <option key={i} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+            ))}
+
+          <h3 style={{ marginTop: 30 }}>Antwortbausteine verwalten</h3>
+          <input
+            placeholder="Neuer Baustein"
+            value={newSnippet}
+            onChange={(e) => setNewSnippet(e.target.value)}
+          />
+          <button onClick={handleAddSnippet}>➕ Hinzufügen</button>
+          <ul>
+            {snippets.map((s, i) => (
+              <li key={i}>
+                {editSnippetIndex === i ? (
+                  <>
+                    <input
+                      value={editSnippetValue}
+                      onChange={(e) => setEditSnippetValue(e.target.value)}
+                    />
+                    <button onClick={() => handleEditSnippet(i)}>✅</button>
+                  </>
+                ) : (
+                  <>
+                    {s}
+                    <button onClick={() => {
+                      setEditSnippetIndex(i);
+                      setEditSnippetValue(s);
+                    }}>✏️</button>
+                    <button onClick={() => handleDeleteSnippet(i)}>🗑️</button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
         </>
       )}
 {tab === "matches" && (

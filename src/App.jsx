@@ -2,19 +2,34 @@ import { useState, useEffect } from "react";
 
 export default function App() {
   const defaultLibrary = [
-    { category: "Tiefgründig", text: "Was bedeutet Glück für dich?" },
-    { category: "Tiefgründig", text: "Was war dein schwerster Moment?" },
-    { category: "Tiefgründig", text: "Glaubst du an Schicksal?" },
-    { category: "Locker", text: "Was ist dein Lieblingsfilm?" },
-    { category: "Locker", text: "Kaffee oder Tee?" },
-    { category: "Locker", text: "Hund oder Katze?" },
-    { category: "Fun", text: "Wenn du ein Tier wärst, welches wärst du?" },
-    { category: "Fun", text: "Was war dein peinlichster Moment?" },
-    { category: "18+ Harmlos", text: "Magst du Überraschungsküsse?" },
-    { category: "18+ Direkt", text: "Was turnt dich sofort an?" },
+    { category: "Smalltalk", text: "Wie war dein Tag heute?" },
+    { category: "Smalltalk", text: "Was hast du zuletzt gegessen?" },
     {
-      category: "18+ Schlüpfrig",
-      text: "Schon mal von öffentlichem Sex geträumt?",
+      category: "Interessen & Persönliches",
+      text: "Was begeistert dich wirklich?",
+    },
+    {
+      category: "Interessen & Persönliches",
+      text: "Hast du ein Hobby, das kaum jemand kennt?",
+    },
+    { category: "Zukunft", text: "Wo siehst du dich in 5 Jahren?" },
+    {
+      category: "Zukunft",
+      text: "Was ist ein Ziel, das du unbedingt erreichen möchtest?",
+    },
+    { category: "Lustig", text: "Was ist das Dümmste, das du je getan hast?" },
+    { category: "Lustig", text: "Was ist dein peinlichstes Erlebnis?" },
+    { category: "Intimes", text: "Was findest du anziehend?" },
+    { category: "Intimes", text: "Wie zeigst du, dass du jemanden magst?" },
+    { category: "Tiefgründig", text: "Glaubst du an Schicksal?" },
+    { category: "Tiefgründig", text: "Was bedeutet Liebe für dich?" },
+    {
+      category: "Würdest du lieber..?",
+      text: "Würdest du lieber für immer flüstern oder für immer schreien?",
+    },
+    {
+      category: "Würdest du lieber..?",
+      text: "Würdest du lieber reich sein oder glücklich?",
     },
   ];
 
@@ -47,6 +62,7 @@ export default function App() {
   const [log, setLog] = useState(
     () => JSON.parse(localStorage.getItem("log")) || []
   );
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     localStorage.setItem("questions", JSON.stringify(questions));
@@ -106,7 +122,14 @@ export default function App() {
       }}
     >
       <h1>Ask Save</h1>
-      <div>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "10px",
+          marginBottom: 15,
+        }}
+      >
         <button onClick={() => setTab("fragen")}>Fragen</button>
         <button onClick={() => setTab("antworten")}>Antworten</button>
         <button onClick={() => setTab("matches")}>Matches</button>
@@ -117,7 +140,7 @@ export default function App() {
         <button onClick={() => setDarkMode(!darkMode)}>
           {darkMode ? "🌞" : "🌙"}
         </button>
-      </div>
+      </div>{" "}
       {tab === "fragen" && (
         <>
           <h2>Fragen stellen</h2>
@@ -181,39 +204,73 @@ export default function App() {
           <button onClick={handleAddCustomQuestion}>➕ Hinzufügen</button>
         </>
       )}
-
-      {tab === "antworten" && activeAnswerMatch && (
+      {tab === "antworten" && (
         <>
-          <h2>Antworten für {activeAnswerMatch}</h2>
-          {questions
-            .filter((q) => q.askedTo?.includes(activeAnswerMatch))
-            .map((q, i) => (
-              <div key={i}>
-                <p>
-                  <strong>{q.text}</strong>
-                </p>
-                <textarea
-                  rows={2}
-                  value={answers[activeAnswerMatch]?.[q.text] || ""}
-                  onChange={(e) =>
-                    setAnswers((prev) => ({
-                      ...prev,
-                      [activeAnswerMatch]: {
-                        ...prev[activeAnswerMatch],
-                        [q.text]: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
-            ))}
+          <h2>Antworten</h2>
+          <input
+            placeholder="Nach Frage suchen..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ marginBottom: 10, padding: 6, width: "100%" }}
+          />
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "10px",
+              marginBottom: 15,
+            }}
+          >
+            {matches
+              .filter(
+                (m) =>
+                  !searchTerm ||
+                  Object.keys(answers[m] || {}).some((q) =>
+                    q.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+              )
+              .map((m, i) => (
+                <button key={i} onClick={() => setActiveAnswerMatch(m)}>
+                  {m}
+                </button>
+              ))}
+          </div>
+
+          {activeAnswerMatch && (
+            <>
+              <h3>Antworten für {activeAnswerMatch}</h3>
+              {questions
+                .filter((q) => q.askedTo?.includes(activeAnswerMatch))
+                .map((q, idx) => (
+                  <div key={idx}>
+                    <p>
+                      <strong>{q.text}</strong>
+                    </p>
+                    <textarea
+                      rows={2}
+                      style={{ width: "100%" }}
+                      value={answers[activeAnswerMatch]?.[q.text] || ""}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [activeAnswerMatch]: {
+                            ...prev[activeAnswerMatch],
+                            [q.text]: e.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </div>
+                ))}
+            </>
+          )}
         </>
       )}
       {tab === "matches" && (
         <>
           <h2>Matches</h2>
           {matches.map((m, i) => (
-            <div key={i}>
+            <div key={i} style={{ marginBottom: "10px" }}>
               <strong>{m}</strong>
               <textarea
                 placeholder="Notizen..."
@@ -221,6 +278,7 @@ export default function App() {
                 onChange={(e) =>
                   setNotes((prev) => ({ ...prev, [m]: e.target.value }))
                 }
+                style={{ display: "block", width: "100%", marginTop: "5px" }}
               />
             </div>
           ))}
@@ -241,7 +299,6 @@ export default function App() {
           </button>
         </>
       )}
-
       {tab === "verlauf" && (
         <>
           <h2>Verlauf</h2>
@@ -249,20 +306,16 @@ export default function App() {
             .slice()
             .reverse()
             .map((entry, i) => (
-              <div key={i}>
-                <p>
-                  <strong>{entry.to}</strong> → {entry.question} (
-                  {entry.category})
-                </p>
-                <p>
-                  <small>{entry.time}</small>
-                </p>
-                <hr />
+              <div key={i} style={{ fontSize: "14px", marginBottom: "6px" }}>
+                <strong>{entry.to}</strong> → {entry.question}{" "}
+                <em>({entry.category})</em>
+                <br />
+                <span style={{ color: "#999" }}>{entry.time}</span>
+                <hr style={{ margin: "4px 0" }} />
               </div>
             ))}
         </>
       )}
-
       {tab === "favoriten" && (
         <>
           <h2>Favoriten</h2>
@@ -271,7 +324,6 @@ export default function App() {
           ))}
         </>
       )}
-
       {tab === "analyse" && (
         <>
           <h2>Analyse</h2>

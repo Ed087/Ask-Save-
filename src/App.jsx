@@ -47,6 +47,9 @@ export default function App() {
       hinzufuegen: "Hinzufügen",
       speichern: "Speichern",
       antwortenVon: "Antworten von",
+      gestellt: "Fragen gestellt:",
+      verlaufLöschen: "Verlauf löschen",
+      verlaufFrage: "Willst du wirklich den gesamten Verlauf löschen?",
     },
     en: {
       fragen: "Questions",
@@ -63,6 +66,9 @@ export default function App() {
       hinzufuegen: "Add",
       speichern: "Save",
       antwortenVon: "Answers from",
+      gestellt: "Questions sent:",
+      verlaufLöschen: "Clear history",
+      verlaufFrage: "Do you really want to delete the entire history?",
     },
   };
 
@@ -116,25 +122,45 @@ export default function App() {
 
   const handleAssignQuestion = (index, match) => {
     const questionText = activeQuestions[index].text;
-    const timestamp = new Date().toLocaleString();
+    const confirmSend = window.confirm(
+      `Frage an "${match}" speichern?\n\n"${questionText}"`
+    );
 
-    setLog((prev) => [
-      ...prev,
-      {
-        to: match,
-        question: questionText,
-        category: "Eigene Fragen",
-        time: timestamp,
-      },
-    ]);
+    if (confirmSend) {
+      const timestamp = new Date().toLocaleString();
+      setLog((prev) => [
+        ...prev,
+        {
+          to: match,
+          question: questionText,
+          category: "Eigene Fragen",
+          time: timestamp,
+        },
+      ]);
 
-    setAnswers((prev) => ({
-      ...prev,
-      [match]: {
-        ...prev[match],
-        [questionText]: prev[match]?.[questionText] || "",
-      },
-    }));
+      setAnswers((prev) => ({
+        ...prev,
+        [match]: {
+          ...prev[match],
+          [questionText]: prev[match]?.[questionText] || "",
+        },
+      }));
+    }
+  };
+
+  const handleDeleteAnswer = (match, question) => {
+    const updated = { ...answers };
+    if (updated[match]) {
+      delete updated[match][question];
+      setAnswers(updated);
+    }
+  };
+
+  const handleClearLog = () => {
+    const confirmClear = window.confirm(t.verlaufFrage);
+    if (confirmClear) {
+      setLog([]);
+    }
   };
 
   const exportData = () => {
@@ -246,6 +272,9 @@ export default function App() {
           </select>
           {viewMatch && (
             <>
+              <p style={{ fontSize: "14px", margin: "4px 0" }}>
+                {t.gestellt} {Object.keys(answers[viewMatch] || {}).length}
+              </p>
               {Object.entries(answers[viewMatch] || {}).map(
                 ([question, answer], i) => (
                   <div key={i} style={{ marginBottom: "10px" }}>
@@ -264,6 +293,11 @@ export default function App() {
                         }))
                       }
                     />
+                    <button
+                      onClick={() => handleDeleteAnswer(viewMatch, question)}
+                    >
+                      {t.loeschen}
+                    </button>
                   </div>
                 )
               )}
@@ -308,6 +342,7 @@ export default function App() {
       {tab === "verlauf" && (
         <>
           <h2>{t.verlauf}</h2>
+          <button onClick={handleClearLog}>{t.verlaufLöschen}</button>
           {log
             .slice()
             .reverse()

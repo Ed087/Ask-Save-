@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 
 export default function App() {
-  const [questionLibrary, setQuestionLibrary] = useState([]);
   const [questions, setQuestions] = useState(
     () => JSON.parse(localStorage.getItem("questions")) || []
   );
@@ -12,6 +11,7 @@ export default function App() {
     () => JSON.parse(localStorage.getItem("matches")) || []
   );
   const [selectedMatch, setSelectedMatch] = useState("");
+  const [viewMatch, setViewMatch] = useState("");
   const [newMatch, setNewMatch] = useState("");
   const [newQuestion, setNewQuestion] = useState("");
   const [tab, setTab] = useState("fragen");
@@ -39,13 +39,14 @@ export default function App() {
       verlauf: "Verlauf",
       favoriten: "Favoriten",
       backup: "Backup",
-      frageStellen: "Frage stellen",
+      frageStellen: "Frage markieren",
       neueFrage: "Neue eigene Frage",
       anWen: "An wen?",
       bitteWaehlen: "Bitte wähle zuerst ein Match aus.",
       loeschen: "Löschen",
       hinzufuegen: "Hinzufügen",
       speichern: "Speichern",
+      antwortenVon: "Antworten von",
     },
     en: {
       fragen: "Questions",
@@ -54,13 +55,14 @@ export default function App() {
       verlauf: "History",
       favoriten: "Favorites",
       backup: "Backup",
-      frageStellen: "Send Question",
-      neueFrage: "New Custom Question",
+      frageStellen: "Mark Question",
+      neueFrage: "New custom question",
       anWen: "To whom?",
       bitteWaehlen: "Please select a match first.",
       loeschen: "Delete",
       hinzufuegen: "Add",
       speichern: "Save",
+      antwortenVon: "Answers from",
     },
   };
 
@@ -91,15 +93,31 @@ export default function App() {
     localStorage.setItem("language", language);
   }, [questions, matches, answers, favorites, notes, log, theme, language]);
   const handleAddQuestion = () => {
-    if (newQuestion.trim() && selectedMatch) {
-      const newQ = { text: newQuestion, askedTo: [selectedMatch] };
-      setQuestions([...questions, newQ]);
+    if (newQuestion.trim()) {
+      setQuestions((prev) => [
+        ...prev,
+        { text: newQuestion.trim(), askedTo: [] },
+      ]);
       setNewQuestion("");
+    }
+  };
+
+  const handleDeleteQuestion = (index) => {
+    const updated = [...questions];
+    updated.splice(index, 1);
+    setQuestions(updated);
+  };
+
+  const handleMarkAsked = (index, match) => {
+    const updated = [...questions];
+    if (!updated[index].askedTo.includes(match)) {
+      updated[index].askedTo.push(match);
+      setQuestions(updated);
       setLog([
         ...log,
         {
-          to: selectedMatch,
-          question: newQ.text,
+          to: match,
+          question: updated[index].text,
           category: "Eigene Fragen",
           time: new Date().toLocaleString(),
         },
@@ -130,13 +148,11 @@ export default function App() {
         <h1>MindQuest</h1>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <select onChange={(e) => setTheme(e.target.value)} value={theme}>
-            <option value="dark">🖤 Dark</option>
-            <option value="light">☀️ Light</option>
-            <option value="romantic">💖 Romantic</option>
-            <option value="ocean">🌊 Ocean</option>
-            <option value="forest">🌲 Forest</option>
-            <option value="tech">💻 Tech</option>
-            <option value="pastel">🎨 Pastel</option>
+            {Object.keys(themeStyles).map((t, i) => (
+              <option key={i} value={t}>
+                {t}
+              </option>
+            ))}
           </select>
           <select
             onChange={(e) => setLanguage(e.target.value)}
@@ -172,57 +188,78 @@ export default function App() {
             onChange={(e) => setNewQuestion(e.target.value)}
             style={{ width: "100%", padding: "6px", marginBottom: "8px" }}
           />
-          <select
-            onChange={(e) => setSelectedMatch(e.target.value)}
-            value={selectedMatch}
-          >
-            <option value="">{t.anWen}</option>
-            {matches.map((m, i) => (
-              <option key={i} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-          {!selectedMatch && (
-            <p style={{ color: "crimson" }}>{t.bitteWaehlen}</p>
-          )}
-          <button onClick={handleAddQuestion} disabled={!selectedMatch}>
-            {t.frageStellen}
-          </button>
+          <button onClick={handleAddQuestion}>{t.hinzufuegen}</button>
+          <hr />
+          {questions.map((q, i) => (
+            <div
+              key={i}
+              style={{ borderBottom: "1px solid #ccc", padding: "8px 0" }}
+            >
+              <p>{q.text}</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                <select
+                  onChange={(e) => handleMarkAsked(i, e.target.value)}
+                  value=""
+                >
+                  <option value="">{t.anWen}</option>
+                  {matches.map((m, idx) => (
+                    <option key={idx} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+                <button onClick={() => handleDeleteQuestion(i)}>
+                  {t.loeschen}
+                </button>
+              </div>
+              <div style={{ fontSize: "12px", color: "gray" }}>
+                Schon gestellt an: {q.askedTo.join(", ") || "-"}
+              </div>
+            </div>
+          ))}
         </>
       )}
 
       {tab === "antworten" && (
         <>
           <h2>{t.antworten}</h2>
-          {questions.map((q, idx) => (
-            <div key={idx} style={{ marginBottom: "10px" }}>
-              <strong>{q.text}</strong>
-              <br />
-              {matches.map(
-                (m, i) =>
-                  q.askedTo?.includes(m) && (
-                    <div key={i}>
-                      <p>{m}</p>
-                      <textarea
-                        rows={2}
-                        style={{ width: "100%" }}
-                        value={answers[m]?.[q.text] || ""}
-                        onChange={(e) =>
-                          setAnswers((prev) => ({
-                            ...prev,
-                            [m]: {
-                              ...prev[m],
-                              [q.text]: e.target.value,
-                            },
-                          }))
-                        }
-                      />
-                    </div>
-                  )
-              )}
-            </div>
-          ))}
+          <label>{t.antwortenVon}:</label>
+          <select
+            onChange={(e) => setViewMatch(e.target.value)}
+            value={viewMatch}
+          >
+            <option value="">—</option>
+            {matches.map((m, i) => (
+              <option key={i} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          {viewMatch && (
+            <>
+              {questions
+                .filter((q) => q.askedTo.includes(viewMatch))
+                .map((q, idx) => (
+                  <div key={idx} style={{ marginBottom: "10px" }}>
+                    <strong>{q.text}</strong>
+                    <textarea
+                      rows={2}
+                      style={{ width: "100%", marginTop: 4 }}
+                      value={answers[viewMatch]?.[q.text] || ""}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [viewMatch]: {
+                            ...prev[viewMatch],
+                            [q.text]: e.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </div>
+                ))}
+            </>
+          )}
         </>
       )}
       {tab === "matches" && (

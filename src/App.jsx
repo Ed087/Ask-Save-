@@ -322,10 +322,10 @@ export default function App() {
             </div>
           ))}
           <input
-            placeholder="Neues Match"
-            value={newMatch}
-            onChange={(e) => setNewMatch(e.target.value)}
-          />
+  placeholder={language === "de" ? "Neuen Chatpartner hinzufügen" : "Add new chatpartner"}
+  value={newMatch}
+  onChange={(e) => setNewMatch(e.target.value)}
+/>
           <button
             onClick={() => {
               if (newMatch && !matches.includes(newMatch)) {

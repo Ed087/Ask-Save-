@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
 export default function App() {
-  const [questions, setQuestions] = useState(
-    () => JSON.parse(localStorage.getItem("questions")) || []
+  const [activeQuestions, setActiveQuestions] = useState(
+    () => JSON.parse(localStorage.getItem("activeQuestions")) || []
   );
   const [answers, setAnswers] = useState(
     () => JSON.parse(localStorage.getItem("answers")) || {}
@@ -39,7 +39,7 @@ export default function App() {
       verlauf: "Verlauf",
       favoriten: "Favoriten",
       backup: "Backup",
-      frageStellen: "Frage markieren",
+      frageStellen: "Frage zuordnen",
       neueFrage: "Neue eigene Frage",
       anWen: "An wen?",
       bitteWaehlen: "Bitte wähle zuerst ein Match aus.",
@@ -55,7 +55,7 @@ export default function App() {
       verlauf: "History",
       favoriten: "Favorites",
       backup: "Backup",
-      frageStellen: "Mark Question",
+      frageStellen: "Assign question",
       neueFrage: "New custom question",
       anWen: "To whom?",
       bitteWaehlen: "Please select a match first.",
@@ -83,7 +83,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    localStorage.setItem("questions", JSON.stringify(questions));
+    localStorage.setItem("activeQuestions", JSON.stringify(activeQuestions));
     localStorage.setItem("matches", JSON.stringify(matches));
     localStorage.setItem("answers", JSON.stringify(answers));
     localStorage.setItem("favorites", JSON.stringify(favorites));
@@ -91,42 +91,54 @@ export default function App() {
     localStorage.setItem("log", JSON.stringify(log));
     localStorage.setItem("theme", theme);
     localStorage.setItem("language", language);
-  }, [questions, matches, answers, favorites, notes, log, theme, language]);
+  }, [
+    activeQuestions,
+    matches,
+    answers,
+    favorites,
+    notes,
+    log,
+    theme,
+    language,
+  ]);
   const handleAddQuestion = () => {
     if (newQuestion.trim()) {
-      setQuestions((prev) => [
-        ...prev,
-        { text: newQuestion.trim(), askedTo: [] },
-      ]);
+      setActiveQuestions((prev) => [...prev, { text: newQuestion.trim() }]);
       setNewQuestion("");
     }
   };
 
   const handleDeleteQuestion = (index) => {
-    const updated = [...questions];
+    const updated = [...activeQuestions];
     updated.splice(index, 1);
-    setQuestions(updated);
+    setActiveQuestions(updated);
   };
 
-  const handleMarkAsked = (index, match) => {
-    const updated = [...questions];
-    if (!updated[index].askedTo.includes(match)) {
-      updated[index].askedTo.push(match);
-      setQuestions(updated);
-      setLog([
-        ...log,
-        {
-          to: match,
-          question: updated[index].text,
-          category: "Eigene Fragen",
-          time: new Date().toLocaleString(),
-        },
-      ]);
-    }
+  const handleAssignQuestion = (index, match) => {
+    const questionText = activeQuestions[index].text;
+    const timestamp = new Date().toLocaleString();
+
+    setLog((prev) => [
+      ...prev,
+      {
+        to: match,
+        question: questionText,
+        category: "Eigene Fragen",
+        time: timestamp,
+      },
+    ]);
+
+    setAnswers((prev) => ({
+      ...prev,
+      [match]: {
+        ...prev[match],
+        [questionText]: prev[match]?.[questionText] || "",
+      },
+    }));
   };
 
   const exportData = () => {
-    const data = { matches, questions, answers, favorites, notes, log };
+    const data = { matches, activeQuestions, answers, favorites, notes, log };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: "application/json",
     });
@@ -190,7 +202,7 @@ export default function App() {
           />
           <button onClick={handleAddQuestion}>{t.hinzufuegen}</button>
           <hr />
-          {questions.map((q, i) => (
+          {activeQuestions.map((q, i) => (
             <div
               key={i}
               style={{ borderBottom: "1px solid #ccc", padding: "8px 0" }}
@@ -198,8 +210,8 @@ export default function App() {
               <p>{q.text}</p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                 <select
-                  onChange={(e) => handleMarkAsked(i, e.target.value)}
                   value=""
+                  onChange={(e) => handleAssignQuestion(i, e.target.value)}
                 >
                   <option value="">{t.anWen}</option>
                   {matches.map((m, idx) => (
@@ -211,9 +223,6 @@ export default function App() {
                 <button onClick={() => handleDeleteQuestion(i)}>
                   {t.loeschen}
                 </button>
-              </div>
-              <div style={{ fontSize: "12px", color: "gray" }}>
-                Schon gestellt an: {q.askedTo.join(", ") || "-"}
               </div>
             </div>
           ))}
@@ -237,27 +246,27 @@ export default function App() {
           </select>
           {viewMatch && (
             <>
-              {questions
-                .filter((q) => q.askedTo.includes(viewMatch))
-                .map((q, idx) => (
-                  <div key={idx} style={{ marginBottom: "10px" }}>
-                    <strong>{q.text}</strong>
+              {Object.entries(answers[viewMatch] || {}).map(
+                ([question, answer], i) => (
+                  <div key={i} style={{ marginBottom: "10px" }}>
+                    <strong>{question}</strong>
                     <textarea
                       rows={2}
                       style={{ width: "100%", marginTop: 4 }}
-                      value={answers[viewMatch]?.[q.text] || ""}
+                      value={answer}
                       onChange={(e) =>
                         setAnswers((prev) => ({
                           ...prev,
                           [viewMatch]: {
                             ...prev[viewMatch],
-                            [q.text]: e.target.value,
+                            [question]: e.target.value,
                           },
                         }))
                       }
                     />
                   </div>
-                ))}
+                )
+              )}
             </>
           )}
         </>

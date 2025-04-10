@@ -322,7 +322,7 @@ export default function App() {
             </div>
           ))}
           <input
-            placeholder="Neuer Match"
+            placeholder="Neues Match"
             value={newMatch}
             onChange={(e) => setNewMatch(e.target.value)}
           />

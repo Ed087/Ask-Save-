@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+1import { useState, useEffect } from "react";
 
 export default function App() {
   const [activeQuestions, setActiveQuestions] = useState(
@@ -309,18 +309,35 @@ export default function App() {
         <>
           <h2>{t.matches}</h2>
           {matches.map((m, i) => (
-            <div key={i} style={{ marginBottom: "10px" }}>
-              <strong>{m}</strong>
-              <textarea
-                placeholder="Notizen..."
-                value={notes[m] || ""}
-                onChange={(e) =>
-                  setNotes((prev) => ({ ...prev, [m]: e.target.value }))
-                }
-                style={{ display: "block", width: "100%", marginTop: "5px" }}
-              />
-            </div>
-          ))}
+  <div key={i} style={{ marginBottom: "10px" }}>
+    <strong>{m}</strong>
+    <textarea
+      placeholder="Notizen..."
+      value={notes[m] || ""}
+      onChange={(e) =>
+        setNotes(prev => ({ ...prev, [m]: e.target.value }))
+      }
+      style={{ display: "block", width: "100%", marginTop: "5px" }}
+    />
+    <button
+      onClick={() => {
+        const confirmed = window.confirm(`„${m}“ wirklich entfernen?`);
+        if (confirmed) {
+          setMatches(matches.filter(name => name !== m));
+          const updatedNotes = { ...notes };
+          const updatedAnswers = { ...answers };
+          delete updatedNotes[m];
+          delete updatedAnswers[m];
+          setNotes(updatedNotes);
+          setAnswers(updatedAnswers);
+        }
+      }}
+      style={{ marginTop: "5px" }}
+    >
+      {t.loeschen}
+    </button>
+  </div>
+))}
           <input
   placeholder={language === "de" ? "Neuen Chatpartner hinzufügen" : "Add new chatpartner"}
   value={newMatch}

@@ -35,7 +35,7 @@ export default function App() {
     de: {
       fragen: "Fragen",
       antworten: "Antworten",
-      matches: "Matches",
+      kontakte: "Kontakte",
       verlauf: "Verlauf",
       favoriten: "Favoriten",
       backup: "Backup",
@@ -54,7 +54,7 @@ export default function App() {
     en: {
       fragen: "Questions",
       antworten: "Answers",
-      matches: "Matches",
+      kontakte: "Contacts",
       verlauf: "History",
       favoriten: "Favorites",
       backup: "Backup",

@@ -30,6 +30,7 @@ export default function App() {
   const [language, setLanguage] = useState(
     () => localStorage.getItem("language") || "de"
   );
+  const [searchTerm, setSearchTerm] = useState("");
 
   const translations = {
     de: {
@@ -74,6 +75,20 @@ export default function App() {
 
   const t = translations[language];
 
+  const themeStyles = {
+    dark: { backgroundColor: "#121212", color: "#eee", fontFamily: "Arial" },
+    light: { backgroundColor: "#f9f9f9", color: "#222" },
+    romantic: {
+      backgroundColor: "#fff0f6",
+      color: "#880e4f",
+      fontFamily: "'Comic Sans MS', cursive",
+    },
+    ocean: { backgroundColor: "#e0f7fa", color: "#004d40" },
+    forest: { backgroundColor: "#e8f5e9", color: "#2e7d32" },
+    tech: { backgroundColor: "#e3f2fd", color: "#0d47a1" },
+    pastel: { backgroundColor: "#fce4ec", color: "#4a148c" },
+  };
+
   useEffect(() => {
     localStorage.setItem("activeQuestions", JSON.stringify(activeQuestions));
     localStorage.setItem("contacts", JSON.stringify(contacts));
@@ -93,24 +108,23 @@ export default function App() {
     theme,
     language,
   ]);
-  const themeStyles = {
-    dark: { backgroundColor: "#121212", color: "#eee", fontFamily: "Arial" },
-    light: { backgroundColor: "#f9f9f9", color: "#222" },
-    romantic: {
-      backgroundColor: "#fff0f6",
-      color: "#880e4f",
-      fontFamily: "'Comic Sans MS', cursive",
-    },
-    ocean: { backgroundColor: "#e0f7fa", color: "#004d40" },
-    forest: { backgroundColor: "#e8f5e9", color: "#2e7d32" },
-    tech: { backgroundColor: "#e3f2fd", color: "#0d47a1" },
-    pastel: { backgroundColor: "#fce4ec", color: "#4a148c" },
-  };
-
   return (
     <div style={{ ...themeStyles[theme], padding: 20, minHeight: "100vh" }}>
-      <h1>MindQuest</h1>
-      <div style={{ display: "flex", gap: "10px", marginBottom: 10 }}>
+      <h1 style={{ marginTop: 0 }}>MindQuest</h1>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "10px",
+          padding: "10px 0",
+          marginBottom: "20px",
+          position: "sticky",
+          top: 0,
+          background: themeStyles[theme].backgroundColor,
+          zIndex: 10,
+        }}
+      >
         <select value={theme} onChange={(e) => setTheme(e.target.value)}>
           {Object.keys(themeStyles).map((style) => (
             <option key={style} value={style}>
@@ -132,8 +146,13 @@ export default function App() {
               favorites,
               log,
             };
-            navigator.clipboard.writeText(JSON.stringify(backup));
-            alert("Backup copied!");
+            const blob = new Blob([JSON.stringify(backup, null, 2)], {
+              type: "application/json",
+            });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "mindquest-backup.json";
+            a.click();
           }}
         >
           {t.backup}
@@ -241,44 +260,66 @@ export default function App() {
               </option>
             ))}
           </select>
+
+          <input
+            type="text"
+            placeholder={
+              language === "de"
+                ? "Antworten durchsuchen..."
+                : "Search answers..."
+            }
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "6px",
+              marginTop: "10px",
+              marginBottom: "10px",
+              fontSize: "14px",
+            }}
+          />
+
           {viewContact && (
             <>
               <p style={{ fontSize: "14px", margin: "4px 0" }}>
                 {t.gestellt} {Object.keys(answers[viewContact] || {}).length}
               </p>
-              {Object.entries(answers[viewContact] || {}).map(([q, a], i) => (
-                <div key={i} style={{ marginBottom: "10px" }}>
-                  <strong>{q}</strong>
-                  <textarea
-                    rows={2}
-                    style={{ width: "100%", marginTop: 4 }}
-                    value={a}
-                    onChange={(e) =>
-                      setAnswers((prev) => ({
-                        ...prev,
-                        [viewContact]: {
-                          ...prev[viewContact],
-                          [q]: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                  <button
-                    onClick={() => {
-                      if (window.confirm("Antwort löschen?")) {
-                        const updated = { ...answers[viewContact] };
-                        delete updated[q];
+              {Object.entries(answers[viewContact] || {})
+                .filter(([q]) =>
+                  q.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map(([q, a], i) => (
+                  <div key={i} style={{ marginBottom: "10px" }}>
+                    <strong>{q}</strong>
+                    <textarea
+                      rows={2}
+                      style={{ width: "100%", marginTop: 4 }}
+                      value={a}
+                      onChange={(e) =>
                         setAnswers((prev) => ({
                           ...prev,
-                          [viewContact]: updated,
-                        }));
+                          [viewContact]: {
+                            ...prev[viewContact],
+                            [q]: e.target.value,
+                          },
+                        }))
                       }
-                    }}
-                  >
-                    {t.loeschen}
-                  </button>
-                </div>
-              ))}
+                    />
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Antwort löschen?")) {
+                          const updated = { ...answers[viewContact] };
+                          delete updated[q];
+                          setAnswers((prev) => ({
+                            ...prev,
+                            [viewContact]: updated,
+                          }));
+                        }
+                      }}
+                    >
+                      {t.loeschen}
+                    </button>
+                  </div>
+                ))}
             </>
           )}
         </>

@@ -317,7 +317,7 @@ export default function App() {
       onChange={(e) =>
         setNotes(prev => ({ ...prev, [m]: e.target.value }))
       }
-      style={{ display: "block", width: "100%", marginTop: "5px" }}
+      style={{ marginTop: "5px", backgroundColor: "#ff4444", color: "white" }}
     />
     <button
       onClick={() => {

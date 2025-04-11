@@ -309,52 +309,67 @@ export default function App() {
   <>
     <h2>{t.matches}</h2>
     {matches.map((m, i) => (
-      <div key={i} style={{ marginBottom: "24px", borderBottom: "1px solid #444", paddingBottom: "12px" }}>
-        <strong style={{ fontSize: "16px" }}>{m}</strong>
-        <textarea
-          placeholder={language === "de" ? "Notizen..." : "Notes..."}
-          value={notes[m] || ""}
-          onChange={(e) =>
-            setNotes(prev => ({ ...prev, [m]: e.target.value }))
-          }
-          style={{
-            display: "block",
-            width: "100%",
-            marginTop: "5px",
-            minHeight: "60px",
-            padding: "8px",
-            fontSize: "15px",
-            borderRadius: "6px",
-            border: "1px solid #aaa"
-          }}
-        />
-        <button
-          onClick={() => {
-            const confirmed = window.confirm(`„${m}“ wirklich entfernen?`);
-            if (confirmed) {
-              setMatches(matches.filter(name => name !== m));
-              const updatedNotes = { ...notes };
-              const updatedAnswers = { ...answers };
-              delete updatedNotes[m];
-              delete updatedAnswers[m];
-              setNotes(updatedNotes);
-              setAnswers(updatedAnswers);
-            }
-          }}
-          style={{
-  marginTop: "8px",
-  backgroundColor: "#ff4d4d",
-  color: "#fff",
-  padding: "4px 8px",
-  border: "none",
-  borderRadius: "4px",
-  fontSize: "13px"
-}}
-        >
-          {t.loeschen}
-        </button>
-      </div>
-    ))}
+  <div
+    key={i}
+    style={{
+      marginBottom: "24px",
+      borderBottom: "1px solid #444",
+      paddingBottom: "12px",
+      cursor: "pointer"
+    }}
+    onClick={() => {
+      setTab("fragen");
+      setSelectedMatch(m);
+    }}
+  >
+    <strong style={{ fontSize: "16px", display: "block", marginBottom: "6px" }}>
+      {m}
+    </strong>
+    <textarea
+      placeholder={language === "de" ? "Notizen..." : "Notes..."}
+      value={notes[m] || ""}
+      onChange={(e) =>
+        setNotes((prev) => ({ ...prev, [m]: e.target.value }))
+      }
+      style={{
+        display: "block",
+        width: "100%",
+        marginTop: "5px",
+        minHeight: "60px",
+        padding: "8px",
+        fontSize: "15px",
+        borderRadius: "6px",
+        border: "1px solid #aaa"
+      }}
+    />
+    <button
+      onClick={(e) => {
+        e.stopPropagation(); // verhindert, dass der Klick auch den oberen onClick triggert
+        const confirmed = window.confirm(`„${m}“ wirklich entfernen?`);
+        if (confirmed) {
+          setMatches(matches.filter((name) => name !== m));
+          const updatedNotes = { ...notes };
+          const updatedAnswers = { ...answers };
+          delete updatedNotes[m];
+          delete updatedAnswers[m];
+          setNotes(updatedNotes);
+          setAnswers(updatedAnswers);
+        }
+      }}
+      style={{
+        marginTop: "8px",
+        backgroundColor: "#ff4d4d",
+        color: "#fff",
+        padding: "4px 8px",
+        border: "none",
+        borderRadius: "4px",
+        fontSize: "13px"
+      }}
+    >
+      {t.loeschen}
+    </button>
+  </div>
+))}
 
     <input
       placeholder={language === "de" ? "Neuen Chatpartner hinzufügen" : "Add new chatpartner"}

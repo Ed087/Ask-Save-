@@ -312,7 +312,7 @@ export default function App() {
       <div key={i} style={{ marginBottom: "24px", borderBottom: "1px solid #444", paddingBottom: "12px" }}>
         <strong style={{ fontSize: "16px" }}>{m}</strong>
         <textarea
-          placeholder="Notizen..."
+          placeholder={language === "de" ? "Notizen..." : "Notes..."}
           value={notes[m] || ""}
           onChange={(e) =>
             setNotes(prev => ({ ...prev, [m]: e.target.value }))

@@ -5,49 +5,49 @@ export default function App() {
     () => JSON.parse(localStorage.getItem("activeQuestions")) || []
   );
   const [answers, setAnswers] = useState(() => {
-  try {
-    const data = JSON.parse(localStorage.getItem("answers"));
-    return typeof data === "object" && data !== null ? data : {};
-  } catch {
-    return {};
-  }
-});
+    try {
+      const data = JSON.parse(localStorage.getItem("answers"));
+      return typeof data === "object" && data !== null ? data : {};
+    } catch {
+      return {};
+    }
+  });
 
-const [contacts, setContacts] = useState(() => {
-  try {
-    const data = JSON.parse(localStorage.getItem("contacts"));
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-});
+  const [contacts, setContacts] = useState(() => {
+    try {
+      const data = JSON.parse(localStorage.getItem("contacts"));
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  });
 
-const [favorites, setFavorites] = useState(() => {
-  try {
-    const data = JSON.parse(localStorage.getItem("favorites"));
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-});
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const data = JSON.parse(localStorage.getItem("favorites"));
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  });
 
-const [notes, setNotes] = useState(() => {
-  try {
-    const data = JSON.parse(localStorage.getItem("notes"));
-    return typeof data === "object" && data !== null ? data : {};
-  } catch {
-    return {};
-  }
-});
+  const [notes, setNotes] = useState(() => {
+    try {
+      const data = JSON.parse(localStorage.getItem("notes"));
+      return typeof data === "object" && data !== null ? data : {};
+    } catch {
+      return {};
+    }
+  });
 
-const [log, setLog] = useState(() => {
-  try {
-    const data = JSON.parse(localStorage.getItem("log"));
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-});
+  const [log, setLog] = useState(() => {
+    try {
+      const data = JSON.parse(localStorage.getItem("log"));
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark"
@@ -263,14 +263,15 @@ const [log, setLog] = useState(() => {
                 </div>
               )}
 
-              {(notes[c] || []).map((note, nidx) => (
-                <div
-                  key={nidx}
-                  style={{ fontSize: "14px", marginLeft: "10px" }}
-                >
-                  - {note}
-                </div>
-              ))}
+              {Array.isArray(notes[c]) &&
+                notes[c].map((note, nidx) => (
+                  <div
+                    key={nidx}
+                    style={{ fontSize: "14px", marginLeft: "10px" }}
+                  >
+                    - {note}
+                  </div>
+                ))}
             </div>
           ))}
 

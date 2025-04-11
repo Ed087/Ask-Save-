@@ -4,51 +4,26 @@ export default function App() {
   const [activeQuestions, setActiveQuestions] = useState(
     () => JSON.parse(localStorage.getItem("activeQuestions")) || []
   );
-  const [answers, setAnswers] = useState(() => {
-    try {
-      const data = JSON.parse(localStorage.getItem("answers"));
-      return typeof data === "object" && data !== null ? data : {};
-    } catch {
-      return {};
-    }
-  });
-
-  const [contacts, setContacts] = useState(() => {
-    try {
-      const data = JSON.parse(localStorage.getItem("contacts"));
-      return Array.isArray(data) ? data : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const data = JSON.parse(localStorage.getItem("favorites"));
-      return Array.isArray(data) ? data : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [notes, setNotes] = useState(() => {
-    try {
-      const data = JSON.parse(localStorage.getItem("notes"));
-      return typeof data === "object" && data !== null ? data : {};
-    } catch {
-      return {};
-    }
-  });
-
-  const [log, setLog] = useState(() => {
-    try {
-      const data = JSON.parse(localStorage.getItem("log"));
-      return Array.isArray(data) ? data : [];
-    } catch {
-      return [];
-    }
-  });
-
+  const [answers, setAnswers] = useState(
+    () => JSON.parse(localStorage.getItem("answers")) || {}
+  );
+  const [contacts, setContacts] = useState(
+    () => JSON.parse(localStorage.getItem("contacts")) || []
+  );
+  const [selectedContact, setSelectedContact] = useState("");
+  const [viewContact, setViewContact] = useState("");
+  const [newContact, setNewContact] = useState("");
+  const [newQuestion, setNewQuestion] = useState("");
+  const [tab, setTab] = useState("fragen");
+  const [favorites, setFavorites] = useState(
+    () => JSON.parse(localStorage.getItem("favorites")) || []
+  );
+  const [notes, setNotes] = useState(
+    () => JSON.parse(localStorage.getItem("notes")) || {}
+  );
+  const [log, setLog] = useState(
+    () => JSON.parse(localStorage.getItem("log")) || []
+  );
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark"
   );
@@ -56,9 +31,6 @@ export default function App() {
     () => localStorage.getItem("language") || "de"
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [editAnswer, setEditAnswer] = useState(null); // für Antwort-Bearbeitung
-  const [highlighted, setHighlighted] = useState(null); // für Verlauf-Fokus
-  const [addingNote, setAddingNote] = useState(""); // für neues Notizfeld
 
   const translations = {
     de: {
@@ -67,8 +39,9 @@ export default function App() {
       kontakte: "Kontakte",
       verlauf: "Verlauf",
       favoriten: "Favoriten",
+      backup: "Backup",
       frageStellen: "Frage zuordnen",
-      neueFrage: "Frage hinzufügen",
+      neueFrage: "Neue eigene Frage",
       anWen: "An wen?",
       bitteWaehlen: "Bitte wähle zuerst einen Kontakt aus.",
       loeschen: "Löschen",
@@ -78,8 +51,6 @@ export default function App() {
       gestellt: "Fragen gestellt:",
       verlaufLöschen: "Verlauf löschen",
       verlaufFrage: "Willst du wirklich den gesamten Verlauf löschen?",
-      notizHinzufuegen: "Notiz hinzufügen",
-      schongestellt: "Diese Frage wurde diesem Kontakt bereits gestellt.",
     },
     en: {
       fragen: "Questions",
@@ -87,8 +58,9 @@ export default function App() {
       kontakte: "Contacts",
       verlauf: "History",
       favoriten: "Favorites",
+      backup: "Backup",
       frageStellen: "Assign question",
-      neueFrage: "Add question",
+      neueFrage: "New custom question",
       anWen: "To whom?",
       bitteWaehlen: "Please select a contact first.",
       loeschen: "Delete",
@@ -98,8 +70,6 @@ export default function App() {
       gestellt: "Questions sent:",
       verlaufLöschen: "Clear history",
       verlaufFrage: "Do you really want to delete the entire history?",
-      notizHinzufuegen: "Add note",
-      schongestellt: "This question was already assigned to this contact.",
     },
   };
 
@@ -166,6 +136,27 @@ export default function App() {
           <option value="de">🇩🇪 Deutsch</option>
           <option value="en">🇺🇸 English</option>
         </select>
+        <button
+          onClick={() => {
+            const backup = {
+              questions: activeQuestions,
+              answers,
+              contacts,
+              notes,
+              favorites,
+              log,
+            };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], {
+              type: "application/json",
+            });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "mindquest-backup.json";
+            a.click();
+          }}
+        >
+          {t.backup}
+        </button>
       </div>
 
       <div
@@ -182,131 +173,6 @@ export default function App() {
         <button onClick={() => setTab("verlauf")}>{t.verlauf}</button>
         <button onClick={() => setTab("favoriten")}>{t.favoriten}</button>
       </div>
-
-      {tab === "kontakte" && (
-        <>
-          <h2>{t.kontakte}</h2>
-          {contacts.map((c, i) => (
-            <div
-              key={i}
-              style={{
-                marginBottom: "16px",
-                borderBottom: "1px solid #444",
-                paddingBottom: "8px",
-              }}
-            >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "10px" }}
-              >
-                <strong
-                  style={{ fontSize: "16px", cursor: "pointer", flexGrow: 1 }}
-                  onClick={() => {
-                    setTab("antworten");
-                    setViewContact(c);
-                    setTimeout(() => setHighlighted(null), 1000);
-                  }}
-                >
-                  {c}
-                </strong>
-                <button
-                  onClick={() => {
-                    setFavorites((prev) =>
-                      prev.includes(c)
-                        ? prev.filter((name) => name !== c)
-                        : [...prev, c]
-                    );
-                  }}
-                >
-                  {favorites.includes(c) ? "⭐" : "☆"}
-                </button>
-                <button onClick={() => setAddingNote(c)}>
-                  {t.notizHinzufuegen}
-                </button>
-                <button
-                  onClick={() => {
-                    const confirmed = window.confirm(
-                      `„${c}“ wirklich entfernen?`
-                    );
-                    if (confirmed) {
-                      setContacts(contacts.filter((name) => name !== c));
-                      const updatedNotes = { ...notes };
-                      const updatedAnswers = { ...answers };
-                      delete updatedNotes[c];
-                      delete updatedAnswers[c];
-                      setNotes(updatedNotes);
-                      setAnswers(updatedAnswers);
-                    }
-                  }}
-                >
-                  🗑️
-                </button>
-              </div>
-
-              {addingNote === c && (
-                <div style={{ marginTop: "5px" }}>
-                  <input
-                    placeholder="Neue Notiz..."
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && e.target.value.trim()) {
-                        const updated = [
-                          ...(notes[c] || []),
-                          e.target.value.trim(),
-                        ];
-                        setNotes((prev) => ({ ...prev, [c]: updated }));
-                        e.target.value = "";
-                        setAddingNote("");
-                      }
-                    }}
-                    style={{ width: "100%", padding: "6px" }}
-                    autoFocus
-                  />
-                </div>
-              )}
-
-              {Array.isArray(notes[c]) &&
-                notes[c].map((note, nidx) => (
-                  <div
-                    key={nidx}
-                    style={{ fontSize: "14px", marginLeft: "10px" }}
-                  >
-                    - {note}
-                  </div>
-                ))}
-            </div>
-          ))}
-
-          <input
-            placeholder={
-              language === "de"
-                ? "Neuen Chatpartner hinzufügen"
-                : "Add new chatpartner"
-            }
-            value={newContact}
-            onChange={(e) => setNewContact(e.target.value)}
-            style={{ width: "100%", padding: "8px", marginTop: "8px" }}
-          />
-          <button
-            onClick={() => {
-              if (newContact && !contacts.includes(newContact)) {
-                setContacts([...contacts, newContact]);
-                setNewContact("");
-              }
-            }}
-            style={{
-              marginTop: "6px",
-              padding: "8px 12px",
-              borderRadius: "5px",
-              backgroundColor: "#4caf50",
-              color: "white",
-              fontWeight: "bold",
-              border: "none",
-              width: "100%",
-            }}
-          >
-            {t.hinzufuegen}
-          </button>
-        </>
-      )}
       {tab === "fragen" && (
         <>
           <h2>{t.fragen}</h2>
@@ -337,10 +203,6 @@ export default function App() {
                 onChange={(e) => {
                   const selected = e.target.value;
                   if (!selected) return;
-                  if (answers[selected]?.[q.text]) {
-                    alert(t.schongestellt);
-                    return;
-                  }
                   if (window.confirm(`„${selected}“ ${t.frageStellen}?`)) {
                     setAnswers((prev) => ({
                       ...prev,
@@ -426,49 +288,142 @@ export default function App() {
                   q.toLowerCase().includes(searchTerm.toLowerCase())
                 )
                 .map(([q, a], i) => (
-                  <div
-                    key={i}
-                    id={`antwort-${i}`}
-                    style={{
-                      marginBottom: "10px",
-                      background: highlighted === q ? "#fffae6" : "transparent",
-                    }}
-                  >
+                  <div key={i} style={{ marginBottom: "10px" }}>
                     <strong>{q}</strong>
-                    {editAnswer === q ? (
-                      <>
-                        <textarea
-                          rows={2}
-                          style={{ width: "100%", marginTop: 4 }}
-                          defaultValue={a}
-                          onBlur={(e) => {
-                            const newText = e.target.value;
-                            setAnswers((prev) => ({
-                              ...prev,
-                              [viewContact]: {
-                                ...prev[viewContact],
-                                [q]: newText,
-                              },
-                            }));
-                            setEditAnswer(null);
-                          }}
-                        />
-                        <button onClick={() => setEditAnswer(null)}>
-                          {t.speichern}
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div>{a || "-"}</div>
-                        <button onClick={() => setEditAnswer(q)}>✏️</button>
-                      </>
-                    )}
+                    <textarea
+                      rows={2}
+                      style={{ width: "100%", marginTop: 4 }}
+                      value={a}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [viewContact]: {
+                            ...prev[viewContact],
+                            [q]: e.target.value,
+                          },
+                        }))
+                      }
+                    />
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Antwort löschen?")) {
+                          const updated = { ...answers[viewContact] };
+                          delete updated[q];
+                          setAnswers((prev) => ({
+                            ...prev,
+                            [viewContact]: updated,
+                          }));
+                        }
+                      }}
+                    >
+                      {t.loeschen}
+                    </button>
                   </div>
                 ))}
             </>
           )}
         </>
       )}
+      {tab === "kontakte" && (
+        <>
+          <h2>{t.kontakte}</h2>
+          {contacts.map((c, i) => (
+            <div
+              key={i}
+              style={{
+                marginBottom: "24px",
+                borderBottom: "1px solid #444",
+                paddingBottom: "12px",
+              }}
+            >
+              <strong
+                style={{ fontSize: "16px", cursor: "pointer" }}
+                onClick={() => {
+                  setTab("antworten");
+                  setViewContact(c);
+                }}
+              >
+                {c}
+              </strong>
+              <textarea
+                placeholder={language === "de" ? "Notizen..." : "Notes..."}
+                value={notes[c] || ""}
+                onChange={(e) =>
+                  setNotes((prev) => ({ ...prev, [c]: e.target.value }))
+                }
+                style={{
+                  display: "block",
+                  width: "100%",
+                  marginTop: "5px",
+                  minHeight: "60px",
+                  padding: "8px",
+                  fontSize: "15px",
+                  borderRadius: "6px",
+                  border: "1px solid #aaa",
+                }}
+              />
+              <button
+                onClick={() => {
+                  const confirmed = window.confirm(
+                    `„${c}“ wirklich entfernen?`
+                  );
+                  if (confirmed) {
+                    setContacts(contacts.filter((name) => name !== c));
+                    const updatedNotes = { ...notes };
+                    const updatedAnswers = { ...answers };
+                    delete updatedNotes[c];
+                    delete updatedAnswers[c];
+                    setNotes(updatedNotes);
+                    setAnswers(updatedAnswers);
+                  }
+                }}
+                style={{
+                  marginTop: "6px",
+                  padding: "6px 10px",
+                  backgroundColor: "#ff4d4d",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  border: "none",
+                  borderRadius: "4px",
+                }}
+              >
+                {t.loeschen}
+              </button>
+            </div>
+          ))}
+          <input
+            placeholder={
+              language === "de"
+                ? "Neuen Chatpartner hinzufügen"
+                : "Add new chatpartner"
+            }
+            value={newContact}
+            onChange={(e) => setNewContact(e.target.value)}
+            style={{ width: "100%", padding: "8px", marginTop: "8px" }}
+          />
+          <button
+            onClick={() => {
+              if (newContact && !contacts.includes(newContact)) {
+                setContacts([...contacts, newContact]);
+                setNewContact("");
+              }
+            }}
+            style={{
+              marginTop: "6px",
+              padding: "8px 12px",
+              borderRadius: "5px",
+              backgroundColor: "#4caf50",
+              color: "white",
+              fontWeight: "bold",
+              border: "none",
+              width: "100%",
+            }}
+          >
+            {t.hinzufuegen}
+          </button>
+        </>
+      )}
+
       {tab === "verlauf" && (
         <>
           <h2>{t.verlauf}</h2>
@@ -483,20 +438,7 @@ export default function App() {
             .slice()
             .reverse()
             .map((entry, i) => (
-              <div
-                key={i}
-                style={{
-                  fontSize: "14px",
-                  marginBottom: "6px",
-                  cursor: "pointer",
-                }}
-                onClick={() => {
-                  setTab("antworten");
-                  setViewContact(entry.to);
-                  setTimeout(() => setHighlighted(entry.question), 100);
-                  setTimeout(() => setHighlighted(null), 1000);
-                }}
-              >
+              <div key={i} style={{ fontSize: "14px", marginBottom: "6px" }}>
                 <strong>{entry.to}</strong> → {entry.question}
                 <br />
                 <span style={{ color: "#999" }}>{entry.time}</span>

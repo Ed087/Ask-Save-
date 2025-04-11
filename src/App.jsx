@@ -7,9 +7,14 @@ export default function App() {
   const [answers, setAnswers] = useState(
     () => JSON.parse(localStorage.getItem("answers")) || {}
   );
-  const [contacts, setContacts] = useState(
-    () => JSON.parse(localStorage.getItem("contacts")) || []
-  );
+  const [contacts, setContacts] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("contacts"));
+      return Array.isArray(stored) ? stored : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [selectedContact, setSelectedContact] = useState("");
   const [viewContact, setViewContact] = useState("");

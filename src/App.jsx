@@ -10,6 +10,7 @@ export default function App() {
   const [contacts, setContacts] = useState(
     () => JSON.parse(localStorage.getItem("contacts")) || []
   );
+
   const [selectedContact, setSelectedContact] = useState("");
   const [viewContact, setViewContact] = useState("");
   const [newContact, setNewContact] = useState("");

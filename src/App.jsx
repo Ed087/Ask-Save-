@@ -342,16 +342,14 @@ export default function App() {
             }
           }}
           style={{
-            marginTop: "10px",
-            backgroundColor: "#ff4d4d",
-            color: "#fff",
-            fontWeight: "bold",
-            padding: "8px 12px",
-            border: "none",
-            borderRadius: "5px",
-            width: "100%",
-            fontSize: "15px"
-          }}
+  marginTop: "8px",
+  backgroundColor: "#ff4d4d",
+  color: "#fff",
+  padding: "4px 8px",
+  border: "none",
+  borderRadius: "4px",
+  fontSize: "13px"
+}}
         >
           {t.loeschen}
         </button>

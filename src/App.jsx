@@ -314,17 +314,25 @@ export default function App() {
     style={{
       marginBottom: "24px",
       borderBottom: "1px solid #444",
-      paddingBottom: "12px",
-      cursor: "pointer"
-    }}
-    onClick={() => {
-      setTab("fragen");
-      setSelectedMatch(m);
+      paddingBottom: "12px"
     }}
   >
-    <strong style={{ fontSize: "16px", display: "block", marginBottom: "6px" }}>
+    <strong
+      style={{
+        fontSize: "16px",
+        display: "block",
+        marginBottom: "6px",
+        cursor: "pointer",
+        color: "#66b0ff"
+      }}
+      onClick={() => {
+        setTab("antworten");
+        setViewMatch(m);
+      }}
+    >
       {m}
     </strong>
+
     <textarea
       placeholder={language === "de" ? "Notizen..." : "Notes..."}
       value={notes[m] || ""}
@@ -342,9 +350,9 @@ export default function App() {
         border: "1px solid #aaa"
       }}
     />
+
     <button
-      onClick={(e) => {
-        e.stopPropagation(); // verhindert, dass der Klick auch den oberen onClick triggert
+      onClick={() => {
         const confirmed = window.confirm(`„${m}“ wirklich entfernen?`);
         if (confirmed) {
           setMatches(matches.filter((name) => name !== m));

@@ -306,55 +306,86 @@ export default function App() {
         </>
       )}
       {tab === "matches" && (
-        <>
-          <h2>{t.matches}</h2>
-          {matches.map((m, i) => (
-  <div key={i} style={{ marginBottom: "10px" }}>
-    <strong>{m}</strong>
-    <textarea
-      placeholder="Notizen..."
-      value={notes[m] || ""}
-      onChange={(e) =>
-        setNotes(prev => ({ ...prev, [m]: e.target.value }))
-      }
-      style={{ marginTop: "5px", backgroundColor: "#ff4444", color: "white" }}
+  <>
+    <h2>{t.matches}</h2>
+    {matches.map((m, i) => (
+      <div key={i} style={{ marginBottom: "24px", borderBottom: "1px solid #444", paddingBottom: "12px" }}>
+        <strong style={{ fontSize: "16px" }}>{m}</strong>
+        <textarea
+          placeholder="Notizen..."
+          value={notes[m] || ""}
+          onChange={(e) =>
+            setNotes(prev => ({ ...prev, [m]: e.target.value }))
+          }
+          style={{
+            display: "block",
+            width: "100%",
+            marginTop: "5px",
+            minHeight: "60px",
+            padding: "8px",
+            fontSize: "15px",
+            borderRadius: "6px",
+            border: "1px solid #aaa"
+          }}
+        />
+        <button
+          onClick={() => {
+            const confirmed = window.confirm(`„${m}“ wirklich entfernen?`);
+            if (confirmed) {
+              setMatches(matches.filter(name => name !== m));
+              const updatedNotes = { ...notes };
+              const updatedAnswers = { ...answers };
+              delete updatedNotes[m];
+              delete updatedAnswers[m];
+              setNotes(updatedNotes);
+              setAnswers(updatedAnswers);
+            }
+          }}
+          style={{
+            marginTop: "10px",
+            backgroundColor: "#ff4d4d",
+            color: "#fff",
+            fontWeight: "bold",
+            padding: "8px 12px",
+            border: "none",
+            borderRadius: "5px",
+            width: "100%",
+            fontSize: "15px"
+          }}
+        >
+          {t.loeschen}
+        </button>
+      </div>
+    ))}
+
+    <input
+      placeholder={language === "de" ? "Neuen Chatpartner hinzufügen" : "Add new chatpartner"}
+      value={newMatch}
+      onChange={(e) => setNewMatch(e.target.value)}
+      style={{ width: "100%", padding: "8px", marginTop: "8px" }}
     />
     <button
       onClick={() => {
-        const confirmed = window.confirm(`„${m}“ wirklich entfernen?`);
-        if (confirmed) {
-          setMatches(matches.filter(name => name !== m));
-          const updatedNotes = { ...notes };
-          const updatedAnswers = { ...answers };
-          delete updatedNotes[m];
-          delete updatedAnswers[m];
-          setNotes(updatedNotes);
-          setAnswers(updatedAnswers);
+        if (newMatch && !matches.includes(newMatch)) {
+          setMatches([...matches, newMatch]);
+          setNewMatch("");
         }
       }}
-      style={{ marginTop: "5px" }}
+      style={{
+        marginTop: "6px",
+        padding: "8px 12px",
+        borderRadius: "5px",
+        backgroundColor: "#4caf50",
+        color: "white",
+        fontWeight: "bold",
+        border: "none",
+        width: "100%"
+      }}
     >
-      {t.loeschen}
+      {t.hinzufuegen}
     </button>
-  </div>
-))}
-          <input
-  placeholder={language === "de" ? "Neuen Chatpartner hinzufügen" : "Add new chatpartner"}
-  value={newMatch}
-  onChange={(e) => setNewMatch(e.target.value)}
-/>
-          <button
-            onClick={() => {
-              if (newMatch && !matches.includes(newMatch)) {
-                setMatches([...matches, newMatch]);
-                setNewMatch("");
-              }
-            }}
-          >
-            {t.hinzufuegen}
-          </button>
-        </>
-      )}
+  </>
+)}
 
       {tab === "verlauf" && (
         <>

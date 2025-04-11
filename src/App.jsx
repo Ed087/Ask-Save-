@@ -1,4 +1,4 @@
-1import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 export default function App() {
   const [activeQuestions, setActiveQuestions] = useState(

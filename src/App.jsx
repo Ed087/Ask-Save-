@@ -4,32 +4,51 @@ export default function App() {
   const [activeQuestions, setActiveQuestions] = useState(
     () => JSON.parse(localStorage.getItem("activeQuestions")) || []
   );
-  const [answers, setAnswers] = useState(
-    () => JSON.parse(localStorage.getItem("answers")) || {}
-  );
-  const [contacts, setContacts] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem("contacts"));
-      return Array.isArray(stored) ? stored : [];
-    } catch {
-      return [];
-    }
-  });
+  const [answers, setAnswers] = useState(() => {
+  try {
+    const data = JSON.parse(localStorage.getItem("answers"));
+    return typeof data === "object" && data !== null ? data : {};
+  } catch {
+    return {};
+  }
+});
 
-  const [selectedContact, setSelectedContact] = useState("");
-  const [viewContact, setViewContact] = useState("");
-  const [newContact, setNewContact] = useState("");
-  const [newQuestion, setNewQuestion] = useState("");
-  const [tab, setTab] = useState("kontakte"); // Startseite
-  const [favorites, setFavorites] = useState(
-    () => JSON.parse(localStorage.getItem("favorites")) || []
-  );
-  const [notes, setNotes] = useState(
-    () => JSON.parse(localStorage.getItem("notes")) || {}
-  );
-  const [log, setLog] = useState(
-    () => JSON.parse(localStorage.getItem("log")) || []
-  );
+const [contacts, setContacts] = useState(() => {
+  try {
+    const data = JSON.parse(localStorage.getItem("contacts"));
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+});
+
+const [favorites, setFavorites] = useState(() => {
+  try {
+    const data = JSON.parse(localStorage.getItem("favorites"));
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+});
+
+const [notes, setNotes] = useState(() => {
+  try {
+    const data = JSON.parse(localStorage.getItem("notes"));
+    return typeof data === "object" && data !== null ? data : {};
+  } catch {
+    return {};
+  }
+});
+
+const [log, setLog] = useState(() => {
+  try {
+    const data = JSON.parse(localStorage.getItem("log"));
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+});
+
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark"
   );

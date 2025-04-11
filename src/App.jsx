@@ -31,41 +31,6 @@ export default function App() {
     () => localStorage.getItem("language") || "de"
   );
 
-  const t = translations[language];
-
-  useEffect(() => {
-    localStorage.setItem("activeQuestions", JSON.stringify(activeQuestions));
-    localStorage.setItem("contacts", JSON.stringify(contacts));
-    localStorage.setItem("answers", JSON.stringify(answers));
-    localStorage.setItem("favorites", JSON.stringify(favorites));
-    localStorage.setItem("notes", JSON.stringify(notes));
-    localStorage.setItem("log", JSON.stringify(log));
-    localStorage.setItem("theme", theme);
-    localStorage.setItem("language", language);
-  }, [
-    activeQuestions,
-    contacts,
-    answers,
-    favorites,
-    notes,
-    log,
-    theme,
-    language,
-  ]);
-  const themeStyles = {
-    dark: { backgroundColor: "#121212", color: "#eee", fontFamily: "Arial" },
-    light: { backgroundColor: "#f9f9f9", color: "#222" },
-    romantic: {
-      backgroundColor: "#fff0f6",
-      color: "#880e4f",
-      fontFamily: "'Comic Sans MS', cursive",
-    },
-    ocean: { backgroundColor: "#e0f7fa", color: "#004d40" },
-    forest: { backgroundColor: "#e8f5e9", color: "#2e7d32" },
-    tech: { backgroundColor: "#e3f2fd", color: "#0d47a1" },
-    pastel: { backgroundColor: "#fce4ec", color: "#4a148c" },
-  };
-
   const translations = {
     de: {
       fragen: "Fragen",
@@ -105,6 +70,41 @@ export default function App() {
       verlaufLöschen: "Clear history",
       verlaufFrage: "Do you really want to delete the entire history?",
     },
+  };
+
+  const t = translations[language];
+
+  useEffect(() => {
+    localStorage.setItem("activeQuestions", JSON.stringify(activeQuestions));
+    localStorage.setItem("contacts", JSON.stringify(contacts));
+    localStorage.setItem("answers", JSON.stringify(answers));
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+    localStorage.setItem("notes", JSON.stringify(notes));
+    localStorage.setItem("log", JSON.stringify(log));
+    localStorage.setItem("theme", theme);
+    localStorage.setItem("language", language);
+  }, [
+    activeQuestions,
+    contacts,
+    answers,
+    favorites,
+    notes,
+    log,
+    theme,
+    language,
+  ]);
+  const themeStyles = {
+    dark: { backgroundColor: "#121212", color: "#eee", fontFamily: "Arial" },
+    light: { backgroundColor: "#f9f9f9", color: "#222" },
+    romantic: {
+      backgroundColor: "#fff0f6",
+      color: "#880e4f",
+      fontFamily: "'Comic Sans MS', cursive",
+    },
+    ocean: { backgroundColor: "#e0f7fa", color: "#004d40" },
+    forest: { backgroundColor: "#e8f5e9", color: "#2e7d32" },
+    tech: { backgroundColor: "#e3f2fd", color: "#0d47a1" },
+    pastel: { backgroundColor: "#fce4ec", color: "#4a148c" },
   };
 
   return (
